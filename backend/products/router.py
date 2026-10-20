@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .service import ProductService
+from ..auth import require_admin
 from ..schemas import ProductCreate
 
 router = APIRouter(
@@ -24,8 +25,8 @@ async def get_product(product_id: str):
         return {"error": "Product not found"} # Handle 404 appropriately in a real app
     return product
 
-@router.post("", status_code=201)
+@router.post("", status_code=201, dependencies=[Depends(require_admin)])
 async def create_product(product: ProductCreate):
-    """Create a new product (Admin function mostly)."""
+    """Create a new product (admin only — requires X-API-Key header)."""
     service = ProductService()
     return await service.create(product)
