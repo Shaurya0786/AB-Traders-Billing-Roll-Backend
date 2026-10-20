@@ -4,8 +4,31 @@ import os
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from pathlib import Path
+
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 logger = logging.getLogger("uvicorn")
+
+_TEMPLATE_DIR = Path(__file__).parent / "templates"
+_env = Environment(
+    loader=FileSystemLoader(str(_TEMPLATE_DIR)),
+    autoescape=select_autoescape(["html"]),
+    trim_blocks=True,
+    lstrip_blocks=True,
+)
+
+_INTERNAL_HTML = _env.get_template("internal_inquiry.html")
+_INTERNAL_TXT = _env.get_template("internal_inquiry.txt")
+_CLIENT_HTML = _env.get_template("client_ack.html")
+_CLIENT_TXT = _env.get_template("client_ack.txt")
+
+
+def _sanitize_header(value: str) -> str:
+    """Strip CR/LF so a crafted name can't inject extra headers (e.g. Bcc)."""
+    if not value:
+        return ""
+    return str(value).replace("\r", "").replace("\n", "").strip()
 
 
 class NotificationService:
@@ -14,62 +37,57 @@ class NotificationService:
         self.gmail_password = os.getenv("GMAIL_APP_PASSWORD")
         self.notify_email = os.getenv("NOTIFY_EMAIL")
 
-    async def send_email(self, inquiry) -> None:
-        """Send a Gmail notification for a new inquiry."""
-        if not all([self.gmail_sender, self.gmail_password, self.notify_email]):
-            logger.warning("Gmail env vars not set — skipping email notification.")
+    async def send_notifications(self, inquiry) -> None:
+        """Fire both the internal notification and the client acknowledgement."""
+        if not self.gmail_sender or not self.gmail_password:
+            logger.warning("Gmail env vars not set — skipping all email notifications.")
             return
 
-        try:
-            await asyncio.to_thread(self._send_email_sync, inquiry)
-            logger.info(f"Inquiry notification email sent for {inquiry.get('full_name')}")
-        except Exception as e:
-            logger.error(f"Failed to send inquiry notification email: {e}")
+        results = await asyncio.gather(
+            self._send_internal(inquiry),
+            self._send_client_ack(inquiry),
+            return_exceptions=True,
+        )
+        for label, result in zip(("internal", "client-ack"), results):
+            if isinstance(result, Exception):
+                logger.error(f"Failed to send {label} email: {result}")
 
-    def _send_email_sync(self, inquiry) -> None:
-        subject = f"📋 New Inquiry — {inquiry.get('full_name', 'Unknown')}"
+    async def _send_internal(self, inquiry) -> None:
+        if not self.notify_email:
+            logger.warning("NOTIFY_EMAIL not set — skipping internal notification.")
+            return
 
-        # Build plain-text + HTML body
-        is_custom = inquiry.get("is_custom_quote", False)
-        inquiry_type = "Custom Quote Request" if is_custom else "General Inquiry"
+        full_name = _sanitize_header(inquiry.get("full_name") or "Unknown")
+        subject = f"📋 New Inquiry — {full_name}"
+        html = _INTERNAL_HTML.render(**inquiry)
+        text = _INTERNAL_TXT.render(**inquiry)
 
-        html = f"""
-        <html><body style="font-family: Arial, sans-serif; color: #333;">
-          <h2 style="color: #1a73e8;">New {inquiry_type} Received</h2>
-          <table style="border-collapse: collapse; width: 100%;">
-            <tr><td style="padding:8px; border:1px solid #ddd;"><strong>Name</strong></td>
-                <td style="padding:8px; border:1px solid #ddd;">{inquiry.get('full_name', '—')}</td></tr>
-            <tr><td style="padding:8px; border:1px solid #ddd;"><strong>Email</strong></td>
-                <td style="padding:8px; border:1px solid #ddd;">{inquiry.get('email', '—')}</td></tr>
-            <tr><td style="padding:8px; border:1px solid #ddd;"><strong>Phone</strong></td>
-                <td style="padding:8px; border:1px solid #ddd;">{inquiry.get('phone_number', '—')}</td></tr>
-            <tr><td style="padding:8px; border:1px solid #ddd;"><strong>Company</strong></td>
-                <td style="padding:8px; border:1px solid #ddd;">{inquiry.get('company_name') or '—'}</td></tr>
-            <tr><td style="padding:8px; border:1px solid #ddd;"><strong>Product Type</strong></td>
-                <td style="padding:8px; border:1px solid #ddd;">{inquiry.get('product_type') or '—'}</td></tr>
-            <tr><td style="padding:8px; border:1px solid #ddd;"><strong>Estimated Qty</strong></td>
-                <td style="padding:8px; border:1px solid #ddd;">{inquiry.get('estimated_quantity') or '—'}</td></tr>
-            <tr><td style="padding:8px; border:1px solid #ddd;"><strong>Message</strong></td>
-                <td style="padding:8px; border:1px solid #ddd;">{inquiry.get('message') or '—'}</td></tr>
-            {"" if not is_custom else f'''
-            <tr><td style="padding:8px; border:1px solid #ddd;"><strong>Roll Width</strong></td>
-                <td style="padding:8px; border:1px solid #ddd;">{inquiry.get('roll_width') or '—'}</td></tr>
-            <tr><td style="padding:8px; border:1px solid #ddd;"><strong>Roll Diameter</strong></td>
-                <td style="padding:8px; border:1px solid #ddd;">{inquiry.get('roll_diameter') or '—'}</td></tr>
-            <tr><td style="padding:8px; border:1px solid #ddd;"><strong>Exact Quantity</strong></td>
-                <td style="padding:8px; border:1px solid #ddd;">{inquiry.get('exact_quantity') or '—'}</td></tr>
-            '''}
-          </table>
-          <p style="color:#888; font-size:12px; margin-top:20px;">AB Traders — Auto Notification</p>
-        </body></html>
-        """
+        await asyncio.to_thread(
+            self._send_sync, self.notify_email, subject, text, html
+        )
+        logger.info(f"Internal inquiry email sent for {full_name}")
 
+    async def _send_client_ack(self, inquiry) -> None:
+        recipient = inquiry.get("email")
+        if not recipient:
+            logger.warning("Inquiry missing email — skipping client acknowledgement.")
+            return
+
+        subject = "We received your inquiry — AB Traders"
+        html = _CLIENT_HTML.render(**inquiry)
+        text = _CLIENT_TXT.render(**inquiry)
+
+        await asyncio.to_thread(self._send_sync, recipient, subject, text, html)
+        logger.info(f"Client acknowledgement email sent to {recipient}")
+
+    def _send_sync(self, to_addr: str, subject: str, text_body: str, html_body: str) -> None:
         msg = MIMEMultipart("alternative")
-        msg["Subject"] = subject
+        msg["Subject"] = _sanitize_header(subject)
         msg["From"] = self.gmail_sender
-        msg["To"] = self.notify_email
-        msg.attach(MIMEText(html, "html"))
+        msg["To"] = to_addr
+        msg.attach(MIMEText(text_body, "plain"))
+        msg.attach(MIMEText(html_body, "html"))
 
         with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
             server.login(self.gmail_sender, self.gmail_password)
-            server.sendmail(self.gmail_sender, self.notify_email, msg.as_string())
+            server.sendmail(self.gmail_sender, [to_addr], msg.as_string())

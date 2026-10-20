@@ -1,0 +1,52 @@
+<html>
+  <body style="font-family: Arial, sans-serif; color: #333;">
+    <h2 style="color: #1a73e8;">
+      New {{ "Custom Quote Request" if is_custom_quote else "General Inquiry" }} Received
+    </h2>
+    <table style="border-collapse: collapse; width: 100%;">
+      <tr>
+        <td style="padding:8px; border:1px solid #ddd;"><strong>Name</strong></td>
+        <td style="padding:8px; border:1px solid #ddd;">{{ full_name or "—" }}</td>
+      </tr>
+      <tr>
+        <td style="padding:8px; border:1px solid #ddd;"><strong>Email</strong></td>
+        <td style="padding:8px; border:1px solid #ddd;">{{ email or "—" }}</td>
+      </tr>
+      <tr>
+        <td style="padding:8px; border:1px solid #ddd;"><strong>Phone</strong></td>
+        <td style="padding:8px; border:1px solid #ddd;">{{ phone_number or "—" }}</td>
+      </tr>
+      <tr>
+        <td style="padding:8px; border:1px solid #ddd;"><strong>Company</strong></td>
+        <td style="padding:8px; border:1px solid #ddd;">{{ company_name or "—" }}</td>
+      </tr>
+      <tr>
+        <td style="padding:8px; border:1px solid #ddd;"><strong>Product Type</strong></td>
+        <td style="padding:8px; border:1px solid #ddd;">{{ product_type or "—" }}</td>
+      </tr>
+      <tr>
+        <td style="padding:8px; border:1px solid #ddd;"><strong>Estimated Qty</strong></td>
+        <td style="padding:8px; border:1px solid #ddd;">{{ estimated_quantity or "—" }}</td>
+      </tr>
+      <tr>
+        <td style="padding:8px; border:1px solid #ddd;"><strong>Message</strong></td>
+        <td style="padding:8px; border:1px solid #ddd;">{{ message or "—" }}</td>
+      </tr>
+      {% if is_custom_quote %}
+      <tr>
+        <td style="padding:8px; border:1px solid #ddd;"><strong>Roll Width</strong></td>
+        <td style="padding:8px; border:1px solid #ddd;">{{ roll_width or "—" }}</td>
+      </tr>
+      <tr>
+        <td style="padding:8px; border:1px solid #ddd;"><strong>Roll Diameter</strong></td>
+        <td style="padding:8px; border:1px solid #ddd;">{{ roll_diameter or "—" }}</td>
+      </tr>
+      <tr>
+        <td style="padding:8px; border:1px solid #ddd;"><strong>Exact Quantity</strong></td>
+        <td style="padding:8px; border:1px solid #ddd;">{{ exact_quantity or "—" }}</td>
+      </tr>
+      {% endif %}
+    </table>
+    <p style="color:#888; font-size:12px; margin-top:20px;">AB Traders — Auto Notification</p>
+  </body>
+</html>

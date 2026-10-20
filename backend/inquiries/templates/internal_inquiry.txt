@@ -1,0 +1,16 @@
+New {{ "Custom Quote Request" if is_custom_quote else "General Inquiry" }} Received
+
+Name:           {{ full_name or "-" }}
+Email:          {{ email or "-" }}
+Phone:          {{ phone_number or "-" }}
+Company:        {{ company_name or "-" }}
+Product Type:   {{ product_type or "-" }}
+Estimated Qty:  {{ estimated_quantity or "-" }}
+Message:        {{ message or "-" }}
+{% if is_custom_quote %}
+Roll Width:     {{ roll_width or "-" }}
+Roll Diameter:  {{ roll_diameter or "-" }}
+Exact Quantity: {{ exact_quantity or "-" }}
+{% endif %}
+--
+AB Traders — Auto Notification

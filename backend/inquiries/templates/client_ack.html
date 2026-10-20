@@ -1,0 +1,84 @@
+<html>
+  <body style="font-family: Arial, sans-serif; color: #333; max-width: 600px;">
+    <h2 style="color: #1a73e8;">Thank you for reaching out, {{ full_name or "there" }}!</h2>
+    <p>
+      We've received your
+      {{ "custom quote request" if is_custom_quote else "inquiry" }}
+      and our team will get back to you within one business day.
+    </p>
+
+    <p><strong>Here's a copy of what you sent us:</strong></p>
+    <table style="border-collapse: collapse; width: 100%;">
+      <tr>
+        <td style="padding:8px; border:1px solid #ddd;"><strong>Name</strong></td>
+        <td style="padding:8px; border:1px solid #ddd;">{{ full_name or "—" }}</td>
+      </tr>
+      <tr>
+        <td style="padding:8px; border:1px solid #ddd;"><strong>Email</strong></td>
+        <td style="padding:8px; border:1px solid #ddd;">{{ email or "—" }}</td>
+      </tr>
+      <tr>
+        <td style="padding:8px; border:1px solid #ddd;"><strong>Phone</strong></td>
+        <td style="padding:8px; border:1px solid #ddd;">{{ phone_number or "—" }}</td>
+      </tr>
+      {% if company_name %}
+      <tr>
+        <td style="padding:8px; border:1px solid #ddd;"><strong>Company</strong></td>
+        <td style="padding:8px; border:1px solid #ddd;">{{ company_name }}</td>
+      </tr>
+      {% endif %}
+      {% if product_type %}
+      <tr>
+        <td style="padding:8px; border:1px solid #ddd;"><strong>Product Type</strong></td>
+        <td style="padding:8px; border:1px solid #ddd;">{{ product_type }}</td>
+      </tr>
+      {% endif %}
+      {% if estimated_quantity %}
+      <tr>
+        <td style="padding:8px; border:1px solid #ddd;"><strong>Estimated Qty</strong></td>
+        <td style="padding:8px; border:1px solid #ddd;">{{ estimated_quantity }}</td>
+      </tr>
+      {% endif %}
+      {% if message %}
+      <tr>
+        <td style="padding:8px; border:1px solid #ddd;"><strong>Message</strong></td>
+        <td style="padding:8px; border:1px solid #ddd;">{{ message }}</td>
+      </tr>
+      {% endif %}
+      {% if is_custom_quote %}
+        {% if roll_width %}
+        <tr>
+          <td style="padding:8px; border:1px solid #ddd;"><strong>Roll Width</strong></td>
+          <td style="padding:8px; border:1px solid #ddd;">{{ roll_width }}</td>
+        </tr>
+        {% endif %}
+        {% if roll_diameter %}
+        <tr>
+          <td style="padding:8px; border:1px solid #ddd;"><strong>Roll Diameter</strong></td>
+          <td style="padding:8px; border:1px solid #ddd;">{{ roll_diameter }}</td>
+        </tr>
+        {% endif %}
+        {% if exact_quantity %}
+        <tr>
+          <td style="padding:8px; border:1px solid #ddd;"><strong>Exact Quantity</strong></td>
+          <td style="padding:8px; border:1px solid #ddd;">{{ exact_quantity }}</td>
+        </tr>
+        {% endif %}
+      {% endif %}
+    </table>
+
+    <p style="margin-top:20px;">
+      If any of these details look wrong, just reply to this email and we'll fix it.
+    </p>
+
+    <p style="margin-top:24px; color:#333;">
+      Best regards,<br>
+      <strong>AB Traders</strong><br>
+      Thermal Paper Rolls &amp; Barcode Labels
+    </p>
+
+    <p style="color:#888; font-size:12px; margin-top:20px;">
+      This is an automated confirmation. Please do not reply to this email address directly — a team member will be in touch shortly.
+    </p>
+  </body>
+</html>

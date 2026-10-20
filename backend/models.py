@@ -12,6 +12,7 @@ class Product(Base):
     
     id: Mapped[uuid4] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4, index=True)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
+    sku: Mapped[Optional[str]] = mapped_column(String(100), nullable=True, index=True)
     price_per_roll: Mapped[float] = mapped_column(Float, nullable=False)
     image_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)

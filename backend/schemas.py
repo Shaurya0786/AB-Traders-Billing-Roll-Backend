@@ -5,6 +5,7 @@ from pydantic import BaseModel, EmailStr, Field
 
 class ProductCreate(BaseModel):
     name: str = Field(..., min_length=1)
+    sku: Optional[str] = None
     price_per_roll: float = Field(..., gt=0)
     image_url: Optional[str] = None
     description: Optional[str] = None

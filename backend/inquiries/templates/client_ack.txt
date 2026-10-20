@@ -1,0 +1,27 @@
+Hi {{ full_name or "there" }},
+
+Thank you for reaching out to AB Traders.
+
+We've received your {{ "custom quote request" if is_custom_quote else "inquiry" }} and our team will get back to you within one business day.
+
+Here's a copy of what you sent us:
+
+Name:           {{ full_name or "-" }}
+Email:          {{ email or "-" }}
+Phone:          {{ phone_number or "-" }}
+{% if company_name %}Company:        {{ company_name }}
+{% endif %}{% if product_type %}Product Type:   {{ product_type }}
+{% endif %}{% if estimated_quantity %}Estimated Qty:  {{ estimated_quantity }}
+{% endif %}{% if message %}Message:        {{ message }}
+{% endif %}{% if is_custom_quote %}{% if roll_width %}Roll Width:     {{ roll_width }}
+{% endif %}{% if roll_diameter %}Roll Diameter:  {{ roll_diameter }}
+{% endif %}{% if exact_quantity %}Exact Quantity: {{ exact_quantity }}
+{% endif %}{% endif %}
+If any of these details look wrong, just reply to this email and we'll fix it.
+
+Best regards,
+AB Traders
+Thermal Paper Rolls & Barcode Labels
+
+--
+This is an automated confirmation. A team member will be in touch shortly.

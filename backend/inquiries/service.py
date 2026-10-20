@@ -21,6 +21,6 @@ class InquiryService:
         result = InquirySerializer().dump(db_inquiry)
 
         # Fire-and-forget — returns response immediately, email sends in background
-        asyncio.create_task(self.notification_service.send_email(result))
+        asyncio.create_task(self.notification_service.send_notifications(result))
 
         return result
