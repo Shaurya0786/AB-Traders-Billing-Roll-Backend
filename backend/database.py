@@ -36,7 +36,8 @@ def reset_session_context(context: Token) -> None:
 engine = create_async_engine(
     DATABASE_URL,
     connect_args={"check_same_thread": False} if "sqlite" in DATABASE_URL else {},
-    echo=True, # Set to False in production
+    # SQL logging is off: it printed every enquiry's name, email and phone to the server logs. SQL_ECHO=1 turns it on locally.
+    echo=os.getenv("SQL_ECHO") == "1",
 )
 
 async_session_factory = async_sessionmaker(
