@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 from uuid import uuid4
-from sqlalchemy import String, Integer, Float, Text, DateTime, Boolean
+from sqlalchemy import String, Integer, Float, Text, DateTime, Boolean, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.dialects.postgresql import UUID
 
@@ -49,3 +49,16 @@ class SiteStatistic(Base):
     id: Mapped[uuid4] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4, index=True)
     key: Mapped[str] = mapped_column(String(50), unique=True, index=True) # e.g., 'experience_years'
     value: Mapped[str] = mapped_column(String(50)) # e.g., '15+'
+
+
+class InquiryItem(Base):
+    """A product in an enquiry (from the website's cart): the product's slug, its name when the enquiry was sent,
+    and the boxes asked for. Kept as text, not a link to products, so the record stays readable after a product
+    is renamed or removed."""
+    __tablename__ = "inquiry_items"
+
+    id: Mapped[uuid4] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
+    inquiry_id: Mapped[uuid4] = mapped_column(UUID(as_uuid=True), ForeignKey("inquiries.id", ondelete="CASCADE"), index=True, nullable=False)
+    product_slug: Mapped[str] = mapped_column(String(255), nullable=False)
+    product_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    boxes: Mapped[int] = mapped_column(Integer, nullable=False)
